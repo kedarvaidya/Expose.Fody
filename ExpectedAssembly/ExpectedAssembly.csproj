@@ -36,12 +36,27 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AssemblyToProcess\DummyEventArgs.cs">
+      <Link>DummyEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\AssemblyToProcess\GenericSampleImpl.cs">
+      <Link>GenericSampleImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\AssemblyToProcess\IGenericSample.cs">
+      <Link>IGenericSample.cs</Link>
+    </Compile>
     <Compile Include="..\AssemblyToProcess\ISample.cs">
       <Link>ISample.cs</Link>
     </Compile>
     <Compile Include="..\AssemblyToProcess\SampleImpl.cs">
       <Link>SampleImpl.cs</Link>
     </Compile>
+    <Compile Include="GenericSampleOfIntExplicitExposer.cs" />
+    <Compile Include="GenericSampleOfIntImplicitExposer.cs" />
+    <Compile Include="GenericSampleOfIntMembersExposer.cs" />
+    <Compile Include="GenericSampleOfTExplicitExposer.cs" />
+    <Compile Include="GenericSampleOfTImplicitExposer.cs" />
+    <Compile Include="GenericSampleOfTMembersExposer.cs" />
     <Compile Include="SampleExplicitExposer.cs" />
     <Compile Include="SampleImplicitExposer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

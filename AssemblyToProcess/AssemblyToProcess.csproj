@@ -79,6 +79,15 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DummyEventArgs.cs" />
+    <Compile Include="GenericSampleImpl.cs" />
+    <Compile Include="GenericSampleOfIntExplicitExposer.cs" />
+    <Compile Include="GenericSampleOfIntImplicitExposer.cs" />
+    <Compile Include="GenericSampleOfIntMembersExposer.cs" />
+    <Compile Include="GenericSampleOfTExplicitExposer.cs" />
+    <Compile Include="GenericSampleOfTImplicitExposer.cs" />
+    <Compile Include="GenericSampleOfTMembersExposer.cs" />
+    <Compile Include="IGenericSample.cs" />
     <Compile Include="SampleExplicitExposer.cs" />
     <Compile Include="SampleImplicitExposer.cs" />
     <Compile Include="ISample.cs" />

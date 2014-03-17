@@ -98,6 +98,9 @@ public class ModuleWeaver
 		foreach (var propertyToExpose in resolvedTypeToExpose.Properties.Public())
 			ExposeProperty(typeToProcess, fieldToProcess, propertyToExpose, exposeMode);
 
+		foreach (var eventToExpose in resolvedTypeToExpose.Events.Public())
+			ExposeEvent(typeToProcess, fieldToProcess, eventToExpose, exposeMode);
+
 		foreach (var methodToExpose in resolvedTypeToExpose.Methods.Public().NonSpecial())
 			ExposeMethod(typeToProcess, fieldToProcess, methodToExpose, exposeMode, MethodSemanticsAttributes.None);
 	}
@@ -105,13 +108,13 @@ public class ModuleWeaver
 	private PropertyDefinition ExposeProperty(TypeDefinition typeToProcess, FieldReference fieldToProcess, PropertyDefinition propertyToExpose, ExposeMode exposeMode)
 	{
 		var typeToExpose = fieldToProcess.FieldType;
+		var genericTypeToExpose = typeToExpose as GenericInstanceType;
 
 		var name = exposeMode == ExposeMode.ImplementExplicit ? typeToExpose.FullName + "." + propertyToExpose.Name : propertyToExpose.Name;
-
-		var propertyToExposeType = propertyToExpose.PropertyType;
+		var propertyToExposeType = genericTypeToExpose == null ? propertyToExpose.PropertyType : propertyToExpose.ResolveGenericPropertyType(genericTypeToExpose.GenericArguments);
 		var property = new PropertyDefinition(name, PropertyAttributes.None, propertyToExposeType);
 
-		if(propertyToExpose.GetMethod != null && propertyToExpose.GetMethod.IsPublic)
+		if (propertyToExpose.GetMethod != null && propertyToExpose.GetMethod.IsPublic)
 		{
 			var getMethod = ExposeMethod(typeToProcess, fieldToProcess, propertyToExpose.GetMethod, exposeMode, MethodSemanticsAttributes.Getter);
 			getMethod.SemanticsAttributes = MethodSemanticsAttributes.Getter;
@@ -130,31 +133,71 @@ public class ModuleWeaver
 		return property;
 	}
 
-	private MethodDefinition ExposeMethod(TypeDefinition typeToProcess, FieldReference fieldToProcess, MethodDefinition methodToExpose, ExposeMode exposeMode, MethodSemanticsAttributes semanticAttributes)
+	private EventDefinition ExposeEvent(TypeDefinition typeToProcess, FieldReference fieldToProcess, EventDefinition eventToExpose, ExposeMode exposeMode)
+	{
+		var typeToExpose = fieldToProcess.FieldType;
+		var genericTypeToExpose = typeToExpose as GenericInstanceType;
+
+		var eventToExposeType = genericTypeToExpose == null ? eventToExpose.EventType : eventToExpose.ResolveGenericEventType(genericTypeToExpose.GenericArguments);
+
+		var name = exposeMode == ExposeMode.ImplementExplicit ? typeToExpose.FullName + "." + eventToExpose.Name : eventToExpose.Name;
+		var @event = new EventDefinition(name, EventAttributes.None, eventToExposeType);
+
+		if (eventToExpose.AddMethod != null && eventToExpose.AddMethod.IsPublic)
+		{
+			var addMethod = ExposeMethod(typeToProcess, fieldToProcess, eventToExpose.AddMethod, exposeMode, MethodSemanticsAttributes.AddOn);
+			addMethod.SemanticsAttributes = MethodSemanticsAttributes.AddOn;
+			@event.AddMethod = addMethod;
+		}
+
+		if (eventToExpose.RemoveMethod != null && eventToExpose.RemoveMethod.IsPublic)
+		{
+			var removeMethod = ExposeMethod(typeToProcess, fieldToProcess, eventToExpose.RemoveMethod, exposeMode, MethodSemanticsAttributes.RemoveOn);
+			removeMethod.SemanticsAttributes = MethodSemanticsAttributes.RemoveOn;
+			@event.RemoveMethod = removeMethod;
+		}
+
+		AddFodyGeneratedAttributes(@event);
+		typeToProcess.Events.Add(@event);
+		return @event;
+	}
+
+	private MethodDefinition ExposeMethod(TypeDefinition typeToProcess, FieldReference fieldToProcess, MethodReference methodToExpose, ExposeMode exposeMode, MethodSemanticsAttributes semanticAttributes)
 	{
 		var typeToExpose = fieldToProcess.FieldType;
 
+		var genericTypeToExpose = typeToExpose as GenericInstanceType;
+		MethodReference methodToExposeWithResolvedGenerics = null;
+
+		if (genericTypeToExpose != null)
+		{
+			methodToExposeWithResolvedGenerics = methodToExpose.With(declaringType: methodToExpose.DeclaringType.MakeGenericInstanceType(genericTypeToExpose.GenericArguments.ToArray()), resolveGenericReturnTypeAndParameterTypes: true);
+			methodToExpose = methodToExpose.With(declaringType: methodToExpose.DeclaringType.MakeGenericInstanceType(genericTypeToExpose.GenericArguments.ToArray()), resolveGenericReturnTypeAndParameterTypes: false);
+		}
 		var name = exposeMode == ExposeMode.ImplementExplicit ? typeToExpose.FullName + "." + methodToExpose.Name : methodToExpose.Name;
 
 		MethodAttributes methodAttributes = (exposeMode == ExposeMode.ImplementExplicit ? MethodAttributes.Private : MethodAttributes.Public);
-		if(exposeMode == ExposeMode.ImplementImplicit || exposeMode == ExposeMode.ImplementExplicit)
+		if (exposeMode == ExposeMode.ImplementImplicit || exposeMode == ExposeMode.ImplementExplicit)
 			methodAttributes |= MethodAttributes.Final;
 		methodAttributes |= MethodAttributes.HideBySig;
-		if(semanticAttributes != MethodSemanticsAttributes.None)
+		if (semanticAttributes != MethodSemanticsAttributes.None)
 			methodAttributes |= MethodAttributes.SpecialName;
-		if(exposeMode == ExposeMode.ImplementImplicit || exposeMode == ExposeMode.ImplementExplicit)
+		if (exposeMode == ExposeMode.ImplementImplicit || exposeMode == ExposeMode.ImplementExplicit)
 			methodAttributes |= MethodAttributes.NewSlot | MethodAttributes.Virtual;
 
-		var method = new MethodDefinition(name, methodAttributes, methodToExpose.ReturnType);
-
-		foreach (var parameter in methodToExpose.Parameters)
+		var method = new MethodDefinition(name, methodAttributes, (methodToExposeWithResolvedGenerics ?? methodToExpose).ReturnType);
+		foreach (var genericParameter in (methodToExposeWithResolvedGenerics ?? methodToExpose).GenericParameters)
+		{
+			method.GenericParameters.Add(new GenericParameter(genericParameter.Name, method));
+		}
+		foreach (var parameter in (methodToExposeWithResolvedGenerics ?? methodToExpose).Parameters)
 		{
 			method.Parameters.Add(new ParameterDefinition(parameter.Name, parameter.Attributes, parameter.ParameterType));
 		}
 
 		bool methodReturnsVoid = method.ReturnType.FullName == ModuleDefinition.TypeSystem.Void.FullName;
 
-		if(!methodReturnsVoid)
+		if (!methodReturnsVoid)
 		{
 			method.Body.Variables.Add(new VariableDefinition(method.ReturnType));
 			method.Body.InitLocals = true;
@@ -163,7 +206,12 @@ public class ModuleWeaver
 		var instructions = method.Body.Instructions;
 		instructions.Add(Instruction.Create(OpCodes.Nop));
 		instructions.Add(Instruction.Create(OpCodes.Ldarg_0)); // Load this
-		instructions.Add(Instruction.Create(OpCodes.Ldfld, fieldToProcess));
+		instructions.Add(Instruction.Create(OpCodes.Ldfld,
+			fieldToProcess.DeclaringType.HasGenericParameters ?
+			fieldToProcess.With(declaringType: fieldToProcess.DeclaringType.MakeGenericInstanceTypeWithGenericParametersAsGenericArguments())
+			: fieldToProcess)
+		);
+
 		if (methodToExpose.Parameters.Count >= 1) instructions.Add(Instruction.Create(OpCodes.Ldarg_1));
 		if (methodToExpose.Parameters.Count >= 2) instructions.Add(Instruction.Create(OpCodes.Ldarg_2));
 		if (methodToExpose.Parameters.Count >= 3) instructions.Add(Instruction.Create(OpCodes.Ldarg_3));
@@ -174,8 +222,8 @@ public class ModuleWeaver
 				instructions.Add(Instruction.Create(OpCodes.Ldarg_S, i + 1));
 			}
 		}
-		instructions.Add(Instruction.Create(OpCodes.Callvirt, methodToExpose));
-		if(methodReturnsVoid)
+		instructions.Add(Instruction.Create(OpCodes.Callvirt, methodToExpose.HasGenericParameters ? methodToExpose.MakeGenericInstanceMethod(method.GenericParameters.ToArray()) : methodToExpose));
+		if (methodReturnsVoid)
 			instructions.Add(Instruction.Create(OpCodes.Nop));
 		else
 		{
@@ -215,7 +263,7 @@ public class ModuleWeaver
 		var customAttributes = self.CustomAttributes;
 
 		var attribute = customAttributes.FirstOrDefault(x => x.AttributeType.Name == ModuleWeaver.ExposeMembersAttribute
-			|| x.AttributeType.Name == ModuleWeaver.ExposeInterfaceImplicitlyAttribute 
+			|| x.AttributeType.Name == ModuleWeaver.ExposeInterfaceImplicitlyAttribute
 			|| x.AttributeType.Name == ModuleWeaver.ExposeInterfaceExplicitlyAttribute);
 
 		if (attribute != null)

@@ -62,6 +62,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GenericOfntTests.cs" />
+    <Compile Include="GenericOfTTests.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="MockAssemblyResolver.cs" />
     <Compile Include="IntegrationTests.cs" />
