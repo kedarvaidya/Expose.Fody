@@ -1,6 +1,5 @@
 ﻿param($installPath, $toolsPath, $package, $project)
 
-
 function RemoveForceProjectLevelHack($project)
 {
 	Write-Host "RemoveForceProjectLevelHack" 
