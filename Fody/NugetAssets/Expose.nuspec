@@ -1,18 +1,24 @@
-<?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-	<metadata>
-		<id>Expose.Fody</id>
-		<version>1.0.0-alpha</version>
-		<title>Expose.Fody</title>
-		<description>Exposes members (properties, indexers, methods and events) and optnaiolly implements interface of a field declared in class.</description>
-		<authors>Kedar Vaidya</authors>
-		<owners>Kedar Vaidya</owners>
-		<licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
-		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<language>en-US</language>
-		<tags>Expose, Mixins, Decorator, ILWeaving, Fody, Cecil</tags>
-		<dependencies>
-			<dependency id="Fody"/>
-		</dependencies>
-	</metadata>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+    <metadata>
+        <id>Expose.Fody</id>
+        <version>1.0.0-alpha</version>
+        <title>Expose.Fody</title>
+        <authors>Kedar Vaidya</authors>
+        <owners>Kedar Vaidya</owners>
+        <licenseUrl>https://raw.githubusercontent.com/kedarvaidya/Expose.Fody/master/license.txt</licenseUrl>
+        <projectUrl>https://github.com/kedarvaidya/Expose.Fody</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Exposes members (properties, indexers, methods and events) and optionally implements interface of a field declared in class.</description>
+        <language>en-US</language>
+        <tags>Expose, Mixins, Decorator, ILWeaving, Fody, Cecil</tags>
+        <dependencies>
+            <dependency id="Fody" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="Fody_ToBeDeleted.txt" target="Fody_ToBeDeleted.txt" />
+        <file src="install.ps1" target="install.ps1" />
+        <file src="uninstall.ps1" target="uninstall.ps1" />
+    </files>
 </package>
