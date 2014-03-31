@@ -1,4 +1,6 @@
 ﻿using System;
+using System.CodeDom.Compiler;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 
@@ -65,6 +67,14 @@ public partial class IntegrationTests
 		Assert.AreEqual(z1, z2);
 	}
 
+	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Method"), Category("HandCoded")]
+	public void HandCodedGenericSampleOfIntMembersExposer_Func_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedGenericSampleOfIntMembersExposer");
+		var method = membersExposerType.GetMethods().FirstOrDefault(m => m.Name == "Func" && !m.IsGenericMethod);
+		Assert.IsEmpty(method.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
+	}
+
 	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Property")]
 	public void GenericSampleOfIntMembersExposer_ReadWriteValue_Should_Return_Same_Value_As_That_Of_InnerSampleOfInt()
 	{
@@ -107,6 +117,14 @@ public partial class IntegrationTests
 		SetExplicitPropertyValue(genericExplicitExposerOfInt, "IGenericSample`1", "ReadWriteValue", int.MinValue);
 		Assert.AreEqual(int.MinValue, GetExplicitPropertyValue(genericExplicitExposerOfInt, "IGenericSample`1", "ReadWriteValue"));
 		Assert.AreEqual(GetExplicitPropertyValue(genericExplicitExposerOfInt, "IGenericSample`1", "ReadWriteValue"), impl.ReadWriteValue);
+	}
+
+	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Property"), Category("HandCoded")]
+	public void HandCodedGenericSampleOfIntMembersExposer_ReadWriteValue_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedGenericSampleOfIntMembersExposer");
+		var property = membersExposerType.GetProperty("ReadWriteValue");
+		Assert.IsEmpty(property.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
 	}
 
 	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Indexer")]
@@ -154,6 +172,14 @@ public partial class IntegrationTests
 		Assert.AreEqual(GetExplicitIndexerValue(genericExplicitExposerOfInt, "IGenericSample`1", int.MinValue), impl[int.MinValue]);
 	}
 
+	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Indexer"), Category("HandCoded")]
+	public void HandCodedGenericSampleOfIntMembersExposer_Indexer_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedGenericSampleOfIntMembersExposer");
+		var property = membersExposerType.GetProperty("Item");
+		Assert.IsEmpty(property.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
+	}
+
 	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("GenericMethod")]
 	public void GenericSampleOfIntMembersExposer_FuncOfU_Should_Return_Same_Value_As_That_Of_InnerSampleOfInt()
 	{
@@ -189,6 +215,14 @@ public partial class IntegrationTests
 		dynamic genericExplicitExposerOfInt = Activator.CreateInstance(assembly.GetType("AssemblyToProcess.GenericSampleOfIntExplicitExposer"), impl);
 		dynamic z2 = InvokeExplicitGenericFunc(genericExplicitExposerOfInt, "IGenericSample`1", "Func", new Type[] { typeof(int) }, x, y);
 		Assert.AreEqual(z1, z2);
+	}
+
+	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Method"), Category("HandCoded")]
+	public void HandCodedGenericSampleOfIntMembersExposer_FuncOfU_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedGenericSampleOfIntMembersExposer");
+		var method = membersExposerType.GetMethods().FirstOrDefault(m => m.Name == "Func" && m.IsGenericMethod);
+		Assert.IsEmpty(method.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
 	}
 
 	public int GenericSampleOfIntMembersExposer_Event_Should_Invoke_That_Of_InnerSampleOfInt_Val = 0;
@@ -246,6 +280,14 @@ public partial class IntegrationTests
 		ei.RemoveEventHandler(genericExplicitExposerOfInt, handler);
 		impl.RaiseEvent(10);
 		Assert.AreEqual(5, GenericSampleOfIntExplicitExposer_Event_Should_Invoke_That_Of_InnerSampleOfInt_Val);
+	}
+
+	[Test, Category("Generic"), Category("GenericOfInt"), Category("Members"), Category("Event"), Category("HandCoded")]
+	public void HandCodedGenericSampleOfIntMembersExposer_Event_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedGenericSampleOfIntMembersExposer");
+		var @event = membersExposerType.GetEvent("Event");
+		Assert.IsEmpty(@event.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
 	}
 
 }

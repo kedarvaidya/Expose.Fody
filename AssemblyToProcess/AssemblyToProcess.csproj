@@ -87,6 +87,11 @@
     <Compile Include="GenericSampleOfTExplicitExposer.cs" />
     <Compile Include="GenericSampleOfTImplicitExposer.cs" />
     <Compile Include="GenericSampleOfTMembersExposer.cs" />
+    <Compile Include="HandCodedGenericSampleOfTMembersExposer.cs" />
+    <Compile Include="HandCodedGenericSampleOfIntMembersExposer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="HandCodedSampleMembersExposer.cs" />
     <Compile Include="IGenericSample.cs" />
     <Compile Include="SampleExplicitExposer.cs" />
     <Compile Include="SampleImplicitExposer.cs" />

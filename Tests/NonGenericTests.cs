@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
@@ -65,6 +66,14 @@ public partial class IntegrationTests
 		Assert.AreEqual(z1, z2);
 	}
 
+	[Test, Category("NonGeneric"), Category("Members"), Category("Method"), Category("HandCoded")]
+	public void HandCodedSampleMembersExposer_Func_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedSampleMembersExposer");
+		var method = membersExposerType.GetMethod("Func");
+		Assert.IsEmpty(method.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
+	}
+
 	[Test, Category("NonGeneric"), Category("Members"), Category("Property")]
 	public void SampleMembersExposer_ReadWriteValue_Should_Return_Same_Value_As_That_Of_InnerSample()
 	{
@@ -110,6 +119,14 @@ public partial class IntegrationTests
 		Assert.AreEqual(GetExplicitPropertyValue(explicitExposer, "ISample", "ReadWriteValue"), impl.ReadWriteValue);
 	}
 
+	[Test, Category("NonGeneric"), Category("Members"), Category("Property"), Category("HandCoded")]
+	public void HandCodedSampleMembersExposer_ReadWriteValue_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedSampleMembersExposer");
+		var property = membersExposerType.GetProperty("ReadWriteValue");
+		Assert.IsEmpty(property.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
+	}
+
 	[Test, Category("NonGeneric"), Category("Members"), Category("Indexer")]
 	public void SampleMembersExposer_Indexer_Should_Return_Same_Value_As_That_Of_InnerSample()
 	{
@@ -152,4 +169,13 @@ public partial class IntegrationTests
 		Assert.AreEqual(double.MinValue, GetExplicitIndexerValue(explicitExposer, "ISample", double.MinValue));
 		Assert.AreEqual(GetExplicitIndexerValue(explicitExposer, "ISample", double.MinValue), impl[double.MinValue]);
 	}
+
+	[Test, Category("NonGeneric"), Category("Members"), Category("Indexer"), Category("HandCoded")]
+	public void HandCodedSampleMembersExposer_Indexer_Should_Not_Be_Automatically_Generated()
+	{
+		var membersExposerType = assembly.GetType("AssemblyToProcess.HandCodedSampleMembersExposer");
+		var property = membersExposerType.GetProperty("Item");
+		Assert.IsEmpty(property.GetCustomAttributes(typeof(GeneratedCodeAttribute), false));
+	}
+
 }

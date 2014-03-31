@@ -121,6 +121,10 @@ public class ModuleWeaver
 			property.GetMethod = getMethod;
 		}
 
+		var existingProperty = typeToProcess.GetPropertyLike(property);
+		if (existingProperty != null)
+			return existingProperty;
+
 		if (propertyToExpose.SetMethod != null && propertyToExpose.SetMethod.IsPublic)
 		{
 			var setMethod = ExposeMethod(typeToProcess, fieldToProcess, propertyToExpose.SetMethod, exposeMode, MethodSemanticsAttributes.Setter);
@@ -142,6 +146,10 @@ public class ModuleWeaver
 
 		var name = exposeMode == ExposeMode.ImplementExplicit ? typeToExpose.FullName + "." + eventToExpose.Name : eventToExpose.Name;
 		var @event = new EventDefinition(name, EventAttributes.None, eventToExposeType);
+
+		var existingEvent = typeToProcess.GetEventLike(@event);
+		if (existingEvent != null)
+			return existingEvent;
 
 		if (eventToExpose.AddMethod != null && eventToExpose.AddMethod.IsPublic)
 		{
@@ -194,6 +202,10 @@ public class ModuleWeaver
 		{
 			method.Parameters.Add(new ParameterDefinition(parameter.Name, parameter.Attributes, parameter.ParameterType));
 		}
+
+		var existingMethod = typeToProcess.GetMethodLike(method);
+		if (existingMethod != null)
+			return existingMethod;
 
 		bool methodReturnsVoid = method.ReturnType.FullName == ModuleDefinition.TypeSystem.Void.FullName;
 

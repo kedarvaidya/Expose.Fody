@@ -37,6 +37,21 @@ internal static class CecilExtensions
 		return self.Where(m => !m.Attributes.HasFlag(MethodAttributes.SpecialName));
 	}
 
+	internal static PropertyDefinition GetPropertyLike(this TypeDefinition self, PropertyDefinition property)
+	{
+		return self.Properties.SingleOrDefault(p => p.IsLike(property));
+	}
+
+	internal static EventDefinition GetEventLike(this TypeDefinition self, EventDefinition @event)
+	{
+		return self.Events.SingleOrDefault(e => e.IsLike(@event));
+	}
+
+	internal static MethodDefinition GetMethodLike(this TypeDefinition self, MethodDefinition method)
+	{
+		return self.Methods.SingleOrDefault(m => m.IsLike(method));
+	}
+
 	internal static GenericInstanceType MakeGenericInstanceType(this TypeReference self, params TypeReference[] arguments)
 	{
 		if (self == null)
@@ -152,6 +167,105 @@ internal static class CecilExtensions
 		return self.EventType.ResolveGenericType(genericArgsDict);
 	}
 
+	private static bool IsLike(this PropertyDefinition self, PropertyDefinition candidate)
+	{
+		if (self.Name != candidate.Name)
+			return false;
+
+		if (!IsLike(self.PropertyType, candidate.PropertyType))
+			return false;
+
+		if (self.Parameters.Count != candidate.Parameters.Count)
+			return false;
+
+		for (int i = 0; i < self.Parameters.Count; i++)
+			if (!IsLike(self.Parameters[i].ParameterType, candidate.Parameters[i].ParameterType))
+				return false;
+
+		return true;
+	}
+
+	private static bool IsLike(this EventDefinition self, EventDefinition candidate)
+	{
+		if (self.Name != candidate.Name)
+			return false;
+
+		if (!IsLike(self.EventType, candidate.EventType))
+			return false;
+
+		return true;
+	}
+
+	private static bool IsLike(this MethodDefinition self, MethodDefinition method)
+	{
+		if (self.Name != method.Name)
+			return false;
+
+		if (!IsLike(self.ReturnType, method.ReturnType))
+			return false;
+
+		if (self.Parameters.Count != method.Parameters.Count)
+			return false;
+
+		for (int i = 0; i < self.Parameters.Count; i++)
+			if (!IsLike(self.Parameters[i].ParameterType, method.Parameters[i].ParameterType))
+				return false;
+
+		return true;
+	}
+
+	private static bool IsLike(this GenericInstanceType self, GenericInstanceType type)
+	{
+		if (!IsLike(self.ElementType, type.ElementType))
+			return false;
+
+		if (self.GenericArguments.Count != type.GenericArguments.Count)
+			return false;
+
+		if (self.GenericArguments.Count == 0)
+			return true;
+
+		for (int i = 0; i < self.GenericArguments.Count; i++)
+			if (!IsLike(self.GenericArguments[i], type.GenericArguments[i]))
+				return false;
+
+		return true;
+	}
+
+	private static bool IsLike(this TypeReference self, TypeReference type)
+	{
+		if (self is GenericParameter)
+			return true;
+
+		var selfAsTypeSpecification = self as TypeSpecification;
+		var typeAsTypeSpecification = type as TypeSpecification;
+		if (selfAsTypeSpecification != null || typeAsTypeSpecification != null)
+		{
+			if (self.GetType() != type.GetType())
+				return false;
+
+			var selfAsGenericInstanceType = self as GenericInstanceType;
+			if (selfAsGenericInstanceType != null)
+				return selfAsGenericInstanceType.IsLike((GenericInstanceType)type);
+
+			var selfAsIModifierType = self as IModifierType;
+			if (selfAsIModifierType != null && selfAsIModifierType.ModifierType.IsLike(((IModifierType)type).ModifierType))
+					return false;
+
+			return selfAsTypeSpecification.ElementType.IsLike(typeAsTypeSpecification.ElementType);
+		}
+
+		return self.FullName == type.FullName;
+	}
+
+	private static TypeDefinition GetBaseType(TypeDefinition type)
+	{
+		if (type == null || type.BaseType == null)
+			return null;
+
+		return type.BaseType.Resolve();
+	}
+
 	private static TypeReference ResolveGenericType(this TypeReference self, IDictionary<string, TypeReference> genericArgsDict)
 	{
 		if (self is GenericParameter)
@@ -182,5 +296,6 @@ internal static class CecilExtensions
 	{
 		return self.GenericParameters.Zip(arguments, (gp, ga) => new { gp, ga }).ToDictionary(i => i.gp.FullName, i => i.ga);
 	}
+
 }
 
